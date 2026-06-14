@@ -37,6 +37,30 @@ OpenRouter is a unified API gateway for many LLM providers using an OpenAI-compa
 4. Set password and API key in `secrets/.env`
 5. Open the web UI
 
+## Как работать с GitHub
+
+У проекта может быть два разных удалённых репозитория:
+
+- `origin` — исходники и чистая installable-версия агента
+- `story` — отдельная история жизни конкретного деплоя, его сессии и биография
+
+Для этого проекта нормальная схема такая:
+
+- исходники публикуются в `https://github.com/aidar-khan/elaira-agent`
+- история деплоев и развитие живого агента публикуются в `https://github.com/aidar-khan/elaira-agent-story`
+
+### Нужен ли второй токен
+
+Не обязательно.
+
+Варианты:
+
+1. Один токен с доступом к обоим репозиториям
+2. Отдельный токен для исходников и отдельный токен для story-репозитория
+
+Если хочется проще — достаточно одного токена, у которого есть права на оба репозитория.
+Если хочется разделить доступы — тогда использовать `GITHUB_TOKEN` и `STORY_GITHUB_TOKEN` отдельно.
+
 ## Files that matter
 
 - `memory/` - long-term notes
@@ -50,4 +74,3 @@ OpenRouter is a unified API gateway for many LLM providers using an OpenAI-compa
 ## Why it can evolve
 
 The agent reads files, uses tools, changes its own repository, and stores the results in Git. That gives it continuity and a practical surface for growth.
-

@@ -20,6 +20,16 @@
     "auto_git_commit": true,
     "auto_git_push": false
   },
+  "git": {
+    "source_remote_name": "origin",
+    "source_repo_url": "https://github.com/aidar-khan/elaira-agent.git",
+    "story_remote_name": "story",
+    "story_repo_url": "https://github.com/aidar-khan/elaira-agent-story.git",
+    "story_branch": "main",
+    "source_token_env": "GITHUB_TOKEN",
+    "story_token_env": "STORY_GITHUB_TOKEN",
+    "auto_story_push": false
+  },
   "auth": {
     "password_env": "ELAIRA_AGENT_PASSWORD"
   },
@@ -28,4 +38,3 @@
     "working_directory": "/opt/agent"
   }
 }
-

@@ -83,6 +83,15 @@ OPENROUTER_API_KEY=...
 ELAIRA_AGENT_PASSWORD=...
 ```
 
+Optional Git environment values:
+
+```text
+GITHUB_TOKEN=...
+STORY_GITHUB_TOKEN=...
+```
+
+`GITHUB_TOKEN` is for the source/code repository. `STORY_GITHUB_TOKEN` is only needed if you want to push the agent's evolving story or session history to a different repository or with different permissions. If one token has access to both repos, the same token can be reused.
+
 ## API
 
 - `GET /api/status`
@@ -116,8 +125,19 @@ This MVP does not auto-resume interrupted turns. It reads `sessions/active.jsonl
 - the file API blocks `secrets/`, `tmp/`, and `.git/`
 - bash is intentionally broad in this MVP, so run the agent only on machines you control
 
+## Git Layout
+
+- `origin` is the install/source repository, by default `https://github.com/aidar-khan/elaira-agent.git`
+- `story` can point to a separate biography/history repository, for example `https://github.com/aidar-khan/elaira-agent-story.git`
+
+Recommended default:
+
+- publish clean installable source code to `elaira-agent`
+- publish deployed agent history or biography to `elaira-agent-story`
+
+This keeps the public install repo clean while allowing a deployed instance to write its own continuity elsewhere.
+
 ## Useful Docs
 
 - [Detailed Russian guide](GUIDE_RU.md)
 - [Short installation prompt](PROMPT_SHORT_RU.md)
-

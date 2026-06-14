@@ -50,6 +50,8 @@ if [[ ! -f secrets/.env ]]; then
 OPENROUTER_API_KEY=
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
+GITHUB_TOKEN=
+STORY_GITHUB_TOKEN=
 ELAIRA_AGENT_PASSWORD=change-me
 EOF
 fi
@@ -64,6 +66,13 @@ if [[ -t 0 ]]; then
     sed -i "s/^ELAIRA_AGENT_PASSWORD=.*/ELAIRA_AGENT_PASSWORD=${ADMIN_PASSWORD_INPUT//\//\\/}/" secrets/.env
   fi
 fi
+
+if [[ ! -d .git ]]; then
+  git init -b main >/dev/null
+fi
+git remote remove origin >/dev/null 2>&1 || true
+git remote add origin "${REPO_URL}"
+
 
 cat > "/tmp/${SERVICE_NAME}.service" <<EOF
 [Unit]
@@ -88,4 +97,3 @@ $SUDO systemctl enable --now "${SERVICE_NAME}.service"
 echo "Installed to ${TARGET_DIR}"
 echo "Service: ${SERVICE_NAME}"
 echo "UI: http://$(hostname -I | awk '{print $1}'):${PORT}/"
-
