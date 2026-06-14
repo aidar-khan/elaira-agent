@@ -1,20 +1,96 @@
 const state = {
   password: "",
   socket: null,
+  events: [],
+  activeTab: "chat",
 };
 
 const statusBar = document.getElementById("statusBar");
 const eventsBox = document.getElementById("events");
+const chatView = document.getElementById("chatView");
 const messageInput = document.getElementById("messageInput");
+const chatTabBtn = document.getElementById("chatTabBtn");
+const debugTabBtn = document.getElementById("debugTabBtn");
 
 function setStatus(text) {
   statusBar.textContent = text;
 }
 
-function appendEvent(payload) {
-  const line = typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
-  eventsBox.textContent += line + "\n\n";
+function extractNestedMessage(text) {
+  if (!text || typeof text !== "string") {
+    return "";
+  }
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === "object" && typeof parsed.message === "string") {
+      return parsed.message;
+    }
+  } catch (error) {
+    // Ignore invalid nested JSON and return the original text.
+  }
+  return text;
+}
+
+function setTab(tab) {
+  state.activeTab = tab;
+  const isChat = tab === "chat";
+  chatView.classList.toggle("hidden", !isChat);
+  eventsBox.classList.toggle("hidden", isChat);
+  chatTabBtn.classList.toggle("active", isChat);
+  debugTabBtn.classList.toggle("active", !isChat);
+}
+
+function bubble(kind, text) {
+  const div = document.createElement("div");
+  div.className = `bubble bubble-${kind}`;
+  div.textContent = text;
+  return div;
+}
+
+function renderChat() {
+  chatView.textContent = "";
+  for (const event of state.events) {
+    if (event.type === "user_message") {
+      chatView.appendChild(bubble("user", event.text || ""));
+      continue;
+    }
+    if (event.type === "ask_user") {
+      chatView.appendChild(bubble("agent", event.question || ""));
+      continue;
+    }
+    if (event.type === "finish") {
+      chatView.appendChild(bubble("agent", extractNestedMessage(event.message || "")));
+      continue;
+    }
+    if (event.type === "notify_user") {
+      chatView.appendChild(bubble("status", event.message || ""));
+      continue;
+    }
+    if (event.type === "tool_started" && event.tool === "bash") {
+      chatView.appendChild(bubble("status", `Running command: ${event.command || ""}`));
+      continue;
+    }
+  }
+  chatView.scrollTop = chatView.scrollHeight;
+}
+
+function renderDebug() {
+  eventsBox.textContent = "";
+  for (const payload of state.events) {
+    const line = typeof payload === "string" ? payload : JSON.stringify(payload, null, 2);
+    eventsBox.textContent += line + "\n\n";
+  }
   eventsBox.scrollTop = eventsBox.scrollHeight;
+}
+
+function renderAll() {
+  renderChat();
+  renderDebug();
+}
+
+function appendEvent(payload) {
+  state.events.push(payload);
+  renderAll();
 }
 
 async function api(path, options = {}) {
@@ -31,10 +107,8 @@ async function api(path, options = {}) {
 
 async function refreshSession() {
   const data = await api("/api/session");
-  eventsBox.textContent = "";
-  for (const event of data.events) {
-    appendEvent(event);
-  }
+  state.events = data.events || [];
+  renderAll();
 }
 
 function connectSocket() {
@@ -65,18 +139,19 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
   if (!text) {
     return;
   }
-  const result = await api("/api/message", {
+  await api("/api/message", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
   });
-  appendEvent(result);
   messageInput.value = "";
-});
-
-document.getElementById("newSessionBtn").addEventListener("click", async () => {
-  const result = await api("/api/new-session", { method: "POST" });
-  appendEvent(result);
   await refreshSession();
 });
 
+document.getElementById("newSessionBtn").addEventListener("click", async () => {
+  await api("/api/new-session", { method: "POST" });
+  await refreshSession();
+});
+
+chatTabBtn.addEventListener("click", () => setTab("chat"));
+debugTabBtn.addEventListener("click", () => setTab("debug"));

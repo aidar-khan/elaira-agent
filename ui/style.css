@@ -52,6 +52,17 @@ body {
   padding: 16px;
 }
 
+.panel-wide {
+  min-width: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 textarea,
 button,
 pre {
@@ -74,6 +85,23 @@ button {
   font-weight: 600;
 }
 
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  width: auto;
+  min-width: 88px;
+  background: #0f1419;
+  border-color: #314050;
+}
+
+.tab.active {
+  background: #1a7f64;
+  border-color: #1a7f64;
+}
+
 pre {
   margin: 0;
   min-height: 500px;
@@ -91,9 +119,53 @@ pre {
   font-size: 14px;
 }
 
+.hidden {
+  display: none;
+}
+
+.chat-view {
+  min-height: 500px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #0f1419;
+  border-radius: 6px;
+  border: 1px solid #2a3440;
+  padding: 12px;
+}
+
+.bubble {
+  max-width: min(85%, 760px);
+  padding: 10px 12px;
+  border-radius: 8px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubble-user {
+  align-self: flex-end;
+  background: #1a7f64;
+  color: #f4fbf7;
+}
+
+.bubble-agent {
+  align-self: flex-start;
+  background: #1c2430;
+  color: #e7edf4;
+}
+
+.bubble-status {
+  align-self: center;
+  background: #131920;
+  border: 1px solid #2a3440;
+  color: #9eb0c0;
+  font-size: 13px;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
   }
 }
-

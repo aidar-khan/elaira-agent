@@ -27,9 +27,16 @@
           <div id="statusBar" class="status">Disconnected</div>
         </section>
 
-        <section class="panel">
-          <h2>Events</h2>
-          <pre id="events"></pre>
+        <section class="panel panel-wide">
+          <div class="panel-header">
+            <h2>Conversation</h2>
+            <div class="tabs">
+              <button id="chatTabBtn" class="tab active" type="button">Chat</button>
+              <button id="debugTabBtn" class="tab" type="button">Debug</button>
+            </div>
+          </div>
+          <div id="chatView" class="chat-view"></div>
+          <pre id="events" class="debug-view hidden"></pre>
         </section>
       </main>
     </div>
@@ -37,4 +44,3 @@
     <script src="/ui/app.js"></script>
   </body>
   </html>
-

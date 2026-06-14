@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 import httpx
@@ -71,7 +72,94 @@ class LLMClient:
 
     def parse_response(self, raw_message: str) -> LLMAction:
         try:
-            payload = json.loads(raw_message)
-            return LLMAction.model_validate(payload)
+            payload = self._extract_payload(raw_message)
+            return self._normalize_action(payload, raw_message)
         except Exception:
             return LLMAction(message=raw_message.strip(), tools=[{"tool": "finish", "message": raw_message.strip() or "Done"}])
+
+    def _extract_payload(self, raw_message: str) -> dict[str, Any]:
+        try:
+            payload = json.loads(raw_message)
+            if isinstance(payload, dict):
+                return payload
+        except Exception:
+            pass
+
+        objects = self._extract_json_objects(raw_message)
+        leading_text = raw_message.split("{", 1)[0].strip() if "{" in raw_message else raw_message.strip()
+        tool_objects = [item for item in objects if isinstance(item, dict) and (item.get("tool") or item.get("name"))]
+        action_objects = [item for item in objects if isinstance(item, dict) and ("message" in item or "tools" in item)]
+
+        if action_objects:
+            payload = dict(action_objects[-1])
+            payload_tools = payload.get("tools", [])
+            if isinstance(payload_tools, list):
+                payload["tools"] = [*tool_objects, *payload_tools]
+            elif tool_objects:
+                payload["tools"] = tool_objects
+            if leading_text and not payload.get("message"):
+                payload["message"] = leading_text
+            return payload
+
+        if tool_objects:
+            return {"message": leading_text or "Proceeding with the requested action.", "tools": tool_objects}
+
+        return {"message": raw_message.strip(), "tools": []}
+
+    def _normalize_action(self, payload: dict[str, Any], raw_message: str) -> LLMAction:
+        normalized = dict(payload)
+        tools = normalized.get("tools", [])
+
+        if isinstance(tools, dict):
+            tools = [tools]
+
+        normalized_tools: list[dict[str, Any]] = []
+        for tool in tools:
+            if isinstance(tool, str):
+                normalized_tools.append({"tool": tool})
+                continue
+            if isinstance(tool, dict):
+                normalized_tool = dict(tool)
+                tool_name = normalized_tool.get("tool") or normalized_tool.get("name")
+                if tool_name:
+                    normalized_tool["tool"] = tool_name
+                if tool_name == "bash" and not normalized_tool.get("command"):
+                    normalized_tool["command"] = normalized_tool.get("input")
+                if tool_name == "ask_user" and not normalized_tool.get("question"):
+                    normalized_tool["question"] = normalized_tool.get("input") or normalized.get("message")
+                if tool_name == "notify_user" and not normalized_tool.get("message"):
+                    normalized_tool["message"] = normalized_tool.get("input") or normalized.get("message")
+                if tool_name == "finish" and not normalized_tool.get("message"):
+                    normalized_tool["message"] = normalized_tool.get("input") or normalized.get("message")
+                if tool_name == "bash" and not normalized_tool.get("command"):
+                    continue
+                if tool_name == "ask_user" and not normalized_tool.get("question"):
+                    continue
+                normalized_tools.append(normalized_tool)
+
+        normalized["tools"] = normalized_tools
+        normalized["message"] = str(normalized.get("message", raw_message.strip() or "Done"))
+        action = LLMAction.model_validate(normalized)
+
+        # If the model asked a question but omitted the normalized tool block, convert it explicitly.
+        if not action.tools and normalized_tools:
+            return LLMAction(message=action.message, tools=normalized_tools)  # type: ignore[arg-type]
+
+        return action
+
+    def _extract_json_objects(self, raw_message: str) -> list[Any]:
+        decoder = json.JSONDecoder()
+        objects: list[Any] = []
+        index = 0
+        while index < len(raw_message):
+            match = re.search(r"[\{\[]", raw_message[index:])
+            if not match:
+                break
+            start = index + match.start()
+            try:
+                parsed, end = decoder.raw_decode(raw_message[start:])
+                objects.append(parsed)
+                index = start + end
+            except Exception:
+                index = start + 1
+        return objects
