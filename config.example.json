@@ -1,0 +1,31 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
+  "llm": {
+    "provider": "openrouter",
+    "model": "openai/gpt-4.1-mini",
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_env": "OPENROUTER_API_KEY",
+    "temperature": 0.2,
+    "max_tokens": 4096,
+    "site_url": "",
+    "site_name": "Elaira Agent"
+  },
+  "agent": {
+    "name": "Elaira",
+    "max_cycles_per_task": 20,
+    "max_tools_per_llm_response": 20,
+    "auto_git_commit": true,
+    "auto_git_push": false
+  },
+  "auth": {
+    "password_env": "ELAIRA_AGENT_PASSWORD"
+  },
+  "bash": {
+    "timeout_seconds": 120,
+    "working_directory": "/opt/agent"
+  }
+}
+

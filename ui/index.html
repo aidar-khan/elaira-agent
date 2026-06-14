@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elaira Agent</title>
+    <link rel="stylesheet" href="/ui/style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <h1>Elaira Agent</h1>
+          <p>Self-hosted file-native agent</p>
+        </div>
+        <div class="actions">
+          <button id="connectBtn">Connect</button>
+          <button id="newSessionBtn">New Session</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel">
+          <h2>Message</h2>
+          <textarea id="messageInput" rows="6" placeholder="Tell Elaira what to do"></textarea>
+          <button id="sendBtn">Send</button>
+          <div id="statusBar" class="status">Disconnected</div>
+        </section>
+
+        <section class="panel">
+          <h2>Events</h2>
+          <pre id="events"></pre>
+        </section>
+      </main>
+    </div>
+
+    <script src="/ui/app.js"></script>
+  </body>
+  </html>
+
